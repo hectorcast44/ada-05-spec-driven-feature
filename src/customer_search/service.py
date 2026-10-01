@@ -19,12 +19,18 @@ class CustomerSearchService:
         self._repository = repository
         self._validator = validator or SearchQueryValidator()
 
-    def search(self, query: str, field: str = "all") -> SearchResult:
+    def search(
+        self,
+        query: str,
+        field: str = "all",
+        active_only: bool = False,
+    ) -> SearchResult:
         """Search customers matching query on given field.
 
         Args:
             query: The search term.
             field: One of 'all', 'name', 'email'. Defaults to 'all'.
+            active_only: If True, only active customers (is_active == True) are returned.
 
         Returns:
             SearchResult containing matching customers and match metrics.
@@ -41,6 +47,9 @@ class CustomerSearchService:
         matched: list[Customer] = []
 
         for customer in all_customers:
+            if active_only and not customer.is_active:
+                continue
+
             name_lower = customer.name.lower()
             email_lower = customer.email.lower()
 
