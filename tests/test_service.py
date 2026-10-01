@@ -86,3 +86,18 @@ def test_service_decoupling_with_custom_repo():
     result = service.search("ranger", field="email")
     assert result.total_matches == 2
     assert [c.name for c in result.customers] == ["Adam Park", "Zack Taylor"]
+
+
+def test_search_active_only_filters_inactive_customers(search_service):
+    # Customer 'cust-003' (Beatriz Mendez) has is_active=False
+    # Search 'garcia' in all fields matches cust-001, cust-002, cust-003
+    default_result = search_service.search("garcia", field="all", active_only=False)
+    assert default_result.total_matches == 3
+    assert any(c.id == "cust-003" for c in default_result.customers)
+
+    # With active_only=True, cust-003 should be excluded
+    active_result = search_service.search("garcia", field="all", active_only=True)
+    assert active_result.total_matches == 2
+    assert all(c.is_active for c in active_result.customers)
+    assert not any(c.id == "cust-003" for c in active_result.customers)
+
